@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:jms="http://www.mulesoft.org/schema/mule/jms" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd">
+    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
+    <jms:activemq-connector name="Active_MQ" username="admin" password="admin" brokerURL="tcp://localhost:61616" validateConnections="true" doc:name="Active MQ"/>
+    <flow name="day4-jmsFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/jms" doc:name="HTTP"/>
+        <logger message="Starting JMS" level="INFO" doc:name="Logger"/>
+        <set-payload value="#[message.inboundProperties.'http.query.params'.name]" doc:name="Set Payload"/>
+        <jms:outbound-endpoint exchange-pattern="request-response" queue="trainingQ" connector-ref="Active_MQ" doc:name="JMS"/>
+    </flow>
+    <flow name="day4-jmsFlow1">
+        <jms:inbound-endpoint queue="trainingQ" connector-ref="Active_MQ" doc:name="JMS"/>
+        <append-string-transformer message=" Welcome to JMS" doc:name="Append String"/>
+        <logger message="Message is processed" level="INFO" doc:name="Logger"/>
+    </flow>
+</mule>
