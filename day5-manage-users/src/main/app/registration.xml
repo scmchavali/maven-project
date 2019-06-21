@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd">
+    
+    <sub-flow name="registrationSub_Flow">
+        <logger message="Registring new user" level="INFO" doc:name="Register User"/>
+        <byte-array-to-string-transformer doc:name="Convert to XML "/>
+        <expression-component doc:name="Expression"><![CDATA[flowVars.fname=xpath3('//user-regn/fname');
+flowVars.lname=xpath3('//user-regn/lname');
+flowVars.userid=xpath3('//user-regn/uid');
+flowVars.pwd=xpath3('//user-regn/pwd');]]></expression-component>
+        <scripting:component doc:name="Groovy">
+            <scripting:script engine="Groovy"><![CDATA[String s1=flowVars.fname;
+String s2=flowVars.lname;
+flowVars.regid=s1.length() + s2.length() +5;
+System.out.println("The rgistration ID: " + flowVars.regid);
+]]></scripting:script>
+        </scripting:component>
+        <db:insert config-ref="MySQL_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[insert into registrations values(#[flowVars.regid], #[flowVars.fname], #[flowVars.lname], #[flowVars.userid], #[flowVars.pwd]);]]></db:parameterized-query>
+        </db:insert>
+    </sub-flow>
+</mule>

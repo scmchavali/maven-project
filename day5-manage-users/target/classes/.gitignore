@@ -1,0 +1,12 @@
+/mule-app.properties
+/mule-deploy.properties
+/registration.xml
+/admin.xml
+/authentication.xml
+/config.properties
+/day5-manage-users.xml
+/global.xml
+/lib/
+/log4j2.xml
+/regn.xml
+/user.json

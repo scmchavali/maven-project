@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:smtp="http://www.mulesoft.org/schema/mule/smtp" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/smtp http://www.mulesoft.org/schema/mule/smtp/current/mule-smtp.xsd">
+    <smtp:gmail-connector name="Gmail" validateConnections="true" doc:name="Gmail"/>
+    <sub-flow name="adminSub_Flow">
+        <logger message="I am admin" level="INFO" doc:name="Logger"/>
+        <db:select config-ref="MySQL_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[select * from registrations;]]></db:parameterized-query>
+        </db:select>
+        <object-to-string-transformer doc:name="Object to String"/>
+        <file:outbound-endpoint path="src/test/resources" outputPattern="regn.txt" responseTimeout="10000" doc:name="File"/>
+        <logger message="preparing to send mail" level="INFO" doc:name="Logger"/>
+        <set-attachment attachmentName="Registrations" value="#[payload]" contentType="text/plain" doc:name="Attachment"/>
+        <smtp:outbound-endpoint host="smtp.gmail.com" user="srcchavali@gmail.com" password="saralik@35f" connector-ref="Gmail" to="murthysrc@yahoo.com" from="srcchavali@gmail.com" subject="New registrations happened today" responseTimeout="10000" doc:name="SMTP"/>
+        <logger message="mail sent successfully" level="INFO" doc:name="Logger"/>
+    </sub-flow>
+</mule>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd">
+    <sub-flow name="authenticationSub_Flow">
+        <logger message="Authenticating user" level="INFO" doc:name="Logger"/>
+        <byte-array-to-object-transformer doc:name="Byte Array to Object"/>
+        <json:json-to-object-transformer returnClass="java.util.HashMap" doc:name="JSON to Object"/>
+        <expression-component doc:name="Expression"><![CDATA[flowVars.uname=payload.user.userid;
+flowVars.pwd=payload.user.pwd;]]></expression-component>
+        <logger message="#[flowVars.uname]" level="INFO" doc:name="Logger"/>
+        <db:select config-ref="MySQL_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[select pwd from users where userid=#[flowVars.uname]]]></db:parameterized-query>
+        </db:select>
+        <scripting:component doc:name="Groovy">
+            <scripting:script engine="Groovy"><![CDATA[if(payload.size()==0) {
+flowVars.authenticated = "Invalid user";
+}
+else {
+System.out.println("The payload is :" + payload);
+flowVars.authenticated=(flowVars.pwd==payload[0].pwd)?"User is authenticated" : "Invalid user"; 
+}]]></scripting:script>
+        </scripting:component>
+        <logger message="#[flowVars.authenticated]" level="INFO" doc:name="Logger"/>
+    </sub-flow>
+</mule>

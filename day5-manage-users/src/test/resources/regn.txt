@@ -1,0 +1,1 @@
+[{lname=JMS, regid=16, userid=aj123, fname=ActiveMQ, pwd=aj321}]
