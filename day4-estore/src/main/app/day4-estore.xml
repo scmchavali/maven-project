@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:mulexml="http://www.mulesoft.org/schema/mule/xml" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/current/mule-xml.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
+    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
+    <db:mysql-config name="MySQL_Configuration" host="localhost" port="3306" user="root" password="root" database="test" doc:name="MySQL Configuration"/>
+    <flow name="day4-estoreFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/estore" doc:name="HTTP"/>
+        <splitter expression="#[xpath('/products/product')]" doc:name="Splitter"/>
+        <vm:outbound-endpoint exchange-pattern="request-response" path="productQ" doc:name="VM"/>
+    </flow>
+    <flow name="day4-estoreFlow1">
+        <vm:inbound-endpoint exchange-pattern="one-way" path="productQ" doc:name="VM"/>
+        <mulexml:dom-to-xml-transformer doc:name="DOM to XML"/>
+        <expression-component doc:name="Expression"><![CDATA[flowVars.pid=xpath3('//product/pid');
+flowVars.pmodel=xpath3('//product/pmodel');
+flowVars.pname=xpath3('//product/pname');
+flowVars.price=xpath3('//product/price');
+flowVars.stock=xpath3('//product/stock');]]></expression-component>
+        <logger message="#[flowVars.pid]" level="INFO" doc:name="Logger"/>
+        <set-property propertyName="mfp" value="#[message.outboundProperties.MULE_CORRELATION_SEQUENCE]" doc:name="Property"/>
+        <async doc:name="Async">
+            <set-property propertyName="asyncp" value="This message is written to file" doc:name="Property"/>
+            <flow-ref name="day4-estoreSub_Flow" doc:name="day4-estoreSub_Flow"/>
+        </async>
+        <db:insert config-ref="MySQL_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[insert into products values(#[flowVars.pid], #[flowVars.pname], #[flowVars.pmodel], #[flowVars.stock], #[flowVars.price])]]></db:parameterized-query>
+        </db:insert>
+        <logger message="Correlation sequence number is : #[message.outboundProperties.mfp]" level="INFO" doc:name="Logger"/>
+    </flow>
+    <sub-flow name="day4-estoreSub_Flow">
+        <file:outbound-endpoint path="src/main/resources" outputPattern="product-#[function:count].xml" responseTimeout="10000" doc:name="File"/>
+        <logger message="#[message.outboundProperties.asyncp]" level="INFO" doc:name="Logger"/>
+    </sub-flow>
+</mule>

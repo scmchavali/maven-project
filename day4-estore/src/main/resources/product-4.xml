@@ -1,0 +1,7 @@
+<product>
+		<pid>l1</pid>
+		<pmodel>ltl6</pmodel>
+		<pname>Laptop</pname>
+		<price>36000.0</price>
+		<stock>10</stock>
+	</product>

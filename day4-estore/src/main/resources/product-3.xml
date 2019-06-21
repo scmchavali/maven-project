@@ -1,0 +1,7 @@
+<product>
+		<pid>m1</pid>
+		<pmodel>mbm1</pmodel>
+		<pname>mobile</pname>
+		<price>6000.0</price>
+		<stock>20</stock>
+	</product>
