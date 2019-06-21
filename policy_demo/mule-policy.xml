@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mule-policy xmlns="http://www.mulesoft.com/tooling/project" runtimeId="org.mule.tooling.server.3.9.1.ee" schemaVersion="5.3.0.0">
+    <name>policy_demo</name>
+    <description></description>
+    <xmlFileName>policy_demo.xml</xmlFileName>
+    <yamlFileName>policy_demo.yaml</yamlFileName>
+</mule-policy>
