@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='windows-1252'?>
+<Products>
+	<product>
+		<category>Electronics</category>
+
+		<name>Refrigerator</name>
+		<modal>RF10</modal>
+		<capacity>5L</capacity>
+		<price>20000</price>
+		<stock>10</stock>
+	</product>
+	<product>
+		<category>Electronics</category>
+		<name>Television</name>
+		<modal>TV10</modal>
+		<size>32inches</size>
+		<price>820000</price>
+		<stock>0</stock>
+	</product>
+	<product>
+		<category>Electronics</category>
+		<name>LApTOP</name>
+		<modal>LP10</modal>
+		<weight>2kgs</weight>
+		<price>620000</price>
+		<stock>5</stock>
+	</product>
+	<product>
+		<category>kitchenware</category>
+		<name>dishwasher</name>
+		<modal>dw10</modal>
+		<capacity>5ltrs</capacity>
+		<price>170000</price>
+		<stock>10</stock>
+	</product>
+	<product>
+		<category>kitchenware</category>
+		<name>dishstand</name>
+		<modal>ds10</modal>
+		<capacity>6by5</capacity>
+		<price>270000</price>
+		<stock>10</stock>
+	</product>
+</Products>

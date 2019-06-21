@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='windows-1252'?>
+<employee>
+    <name>
+        <fname>Sriram</fname>
+        <lname>chandra</lname>
+        <sirname>chavali</sirname>
+    </name>
+    <department>HR</department>
+    <designation>Manager</designation>
+</employee>

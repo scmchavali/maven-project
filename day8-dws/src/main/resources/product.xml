@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='windows-1252'?>
+<Products type="Electronics">
+   	<Refrigerator color="silver-blue" size="4.5 inches">
+		<modal>RF10</modal>
+		<capacity>5L</capacity>
+		<price>20000</price>
+		<stock>10</stock>
+	</Refrigerator>
+</Products>

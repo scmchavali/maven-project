@@ -1,0 +1,11 @@
+{
+    "inputMessageMetadata": {
+        "messagePayload": {
+            "connectorName": "#_custom_mule_metadata_type_#",
+            "typeId": "fidjson"
+        }
+    },
+    "outputMessageMetadata": {},
+    "id": "c8c750a7-ea5c-4a19-83e7-23cefc68c089",
+    "version": "5.2.0.0"
+}

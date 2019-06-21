@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ws="http://www.mulesoft.org/schema/mule/ws" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/ws http://www.mulesoft.org/schema/mule/ws/current/mule-ws.xsd">
+    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
+    <ws:consumer-config name="Web_Service_Consumer" service="TicketServiceService" port="TicketServicePort" serviceAddress="http://training.cloudhub.io/essentials/delta" wsdlLocation="http://ilt.mulesoft-training.com/essentials/delta?wsdl" doc:name="Web Service Consumer"/>
+    <ws:consumer-config name="Web_Service_Consumer1" service="TicketServiceService" port="TicketServicePort" serviceAddress="http://ilt.mulesoft-training.com/essentials/delta" wsdlLocation="http://ilt.mulesoft-training.com/essentials/delta?wsdl" doc:name="Web Service Consumer"/>
+    <flow name="day8-dwsFlow13">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/dw-13" doc:name="HTTP"/>
+        <ws:consumer config-ref="Web_Service_Consumer" operation="listAllFlights" doc:name="Web Service Consumer"/>
+        <dw:transform-message doc:name="Transform Message" metadata:id="f2dd7a84-6683-475c-a97a-61cd06794f5a">
+            <dw:input-payload doc:sample="sample_data\listAllFlightsResponse.xml" mimeType="application/xml"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+%namespace ns0 http://soap.training.mulesoft.com/
+%type currency = :string{format: "###.00"}
+---
+payload.ns0#listAllFlightsResponse.*return map ((return , indexOfReturn) -> {
+	SerialNo: indexOfReturn,
+	airline: return.@airlineName,
+	flightCode: return.code,
+	fromAirportCode: return.origin,
+	toAirportCode: return.destination,
+	departureDate: return.departureDate,
+	emptySeats: return.emptySeats,
+	price: return.price as :number as :currency, // custom type
+	planeType: return.planeType replace "Boing" with "Boeing",
+	totalSeats: 150 when (return.planeType[-1 to -3] as :number <777) otherwise 300
+})]]></dw:set-payload>
+        </dw:transform-message>
+    </flow>
+    <flow name="day8-dwsFlow12">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/dw-12" doc:name="HTTP"/>
+        <dw:transform-message doc:name="Transform Message" metadata:id="fb9623e7-8c9d-4a03-952a-c7cfef85ccbe">
+            <dw:input-payload doc:sample="products.xml" mimeType="application/xml"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+%var hcom=0.2
+%var lcom=0.1
+---
+{
+	item: payload.Products.*product map {
+		category: $.category,
+		name: $.name,
+		price: $.price  as :string {format: "###.00"},
+		commn: $.price * hcom when $.price > 10000 otherwise  $.price * lcom
+	}  groupBy $.category
+}  orderBy $.price]]></dw:set-payload>
+        </dw:transform-message>
+    </flow>
+    <flow name="day8-dwsFlow11">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/dw-11" doc:name="HTTP"/>
+        <set-variable variableName="mname" value="ESB" doc:name="Variable"/>
+        <set-property propertyName="lname" value="training" doc:name="Property"/>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/xml
+---
+{
+	person: {
+		firstname: inboundProperties."http.query.params".fname,
+		middlename: flowVars.mname,
+		lastname: outboundProperties.lname
+	}
+}]]></dw:set-payload>
+        </dw:transform-message>
+    </flow>
+    <flow name="day8-dwsFlow10">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/dw-10" doc:name="HTTP"/>
+        <dw:transform-message doc:name="Transform Message" metadata:id="2a4d412a-cade-44fa-95f0-2705455da547">
+            <dw:input-payload doc:sample="company.xml" mimeType="application/xml"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	present: payload.company.department,
+	names: payload.company.department.technical.employees.*employee[?($=="sthu")]
+}]]></dw:set-payload>
+        </dw:transform-message>
+    </flow>
+    <flow name="day8-dwsFlow9">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/dw-09" doc:name="HTTP"/>
+        <dw:transform-message doc:name="Transform Message" metadata:id="0f907790-f5ed-4067-8dca-b2e3ab5a1bfb">
+            <dw:input-payload doc:sample="product.xml" mimeType="application/xml"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	items: {
+		"category": payload.Products.@type,
+		"item": payload.Products,
+		price: payload.Products.Refrigerator.price as :number as :string {format: "###.00"}
+	}
+}]]></dw:set-payload>
+        </dw:transform-message>
+    </flow>
+    <flow name="day8-dwsFlow8">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/dw-08" doc:name="HTTP"/>
+        <dw:transform-message doc:name="Transform Message" metadata:id="ae031d5e-6099-4df7-8746-6f34ae0a596d">
+            <dw:input-payload doc:sample="company.xml" mimeType="application/xml"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	employees: payload.company.department.technical.employees.*employee map ($$ ++ ":" ++ upper $ )
+}]]></dw:set-payload>
+        </dw:transform-message>
+    </flow>
+    <flow name="day8-dwsFlow7">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/dw-07" doc:name="HTTP"/>
+        <dw:transform-message doc:name="Transform Message" metadata:id="0b4d9d78-5c3d-44ea-88a6-8e9f31825934">
+            <dw:input-payload doc:sample="employee.xml" mimeType="application/xml"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	name: payload.employee.name.fname,
+	designation: payload.employee.designation
+}]]></dw:set-payload>
+        </dw:transform-message>
+    </flow>
+    <flow name="day8-dwsFlow6">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/dw-06" doc:name="HTTP"/>
+        <dw:transform-message doc:name="Transform Message" metadata:id="267bbf05-35c5-419c-9de6-21876e0a89da">
+            <dw:input-payload doc:sample="employee.json" mimeType="application/json"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/xml
+%function splitname(name) name splitBy " "
+---
+// Declare function at employee level 
+employee: using (names = splitname(payload.employee.name)){
+  name: {
+  	firstname: names[0],
+  	sirname: names[1]
+  },
+  // random generates number from 0 to 1
+  empid: names[0][0] ++ names[1][0] ++ (random * 10000) as :number as :string{format: "####"},
+  email: (lower (payload.employee.name) replace " " with ".") ++ "@company.com"
+  }
+]]></dw:set-payload>
+        </dw:transform-message>
+    </flow>
+    <flow name="day8-dwsFlow5">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/dw-05" doc:name="HTTP"/>
+        <dw:transform-message doc:name="Transform Message" metadata:id="4e2cc15a-e4fc-4f38-879c-306af26b87a6">
+            <dw:input-payload doc:sample="user.json" mimeType="application/json"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/xml
+---
+{
+	employee: using(dept='HR', desn='Manager'){
+		name: payload.user,
+		department: dept,
+		designation: desn
+	}
+}]]></dw:set-payload>
+        </dw:transform-message>
+    </flow>
+    <flow name="day8-dwsFlow4">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/dw-04" doc:name="HTTP"/>
+        <dw:transform-message doc:name="Transform Message" metadata:id="75b0650e-6b1f-4ee8-b69e-6cc8746929ae">
+            <dw:input-payload doc:sample="user.json" mimeType="application/json"/>
+            <dw:input-outbound-property propertyName="MULE_ENCODING"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/xml
+%var nat='Indian'
+---
+{
+	user: {
+		fname: payload.user.fname,
+		lname: payload.user.lname,
+		sirname: payload.user.sirname,
+		Nationality: nat
+	}
+}]]></dw:set-payload>
+        </dw:transform-message>
+    </flow>
+    <flow name="day8-dwsFlow3">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/dw-03" doc:name="HTTP"/>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+%var myarray=["Mule","ESB","Training"]
+---
+myarray map {
+	'$$' : myarray[$$] // or it is same as $
+}]]></dw:set-payload>
+        </dw:transform-message>
+    </flow>
+    <flow name="day8-dwsFlow2">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/dw-02" doc:name="HTTP"/>
+        <dw:transform-message doc:name="Transform Message" metadata:id="e0b78570-a8df-41c8-b99e-45520ebbb5e2">
+            <dw:input-payload doc:sample="flight.xml" mimeType="application/xml"/>
+            <dw:input-inbound-property propertyName="http.version"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+payload]]></dw:set-payload>
+        </dw:transform-message>
+    </flow>
+    <flow name="day8-dwsFlow1">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/dw-01" doc:name="HTTP"/>
+        <dw:transform-message doc:name="Transform Message" metadata:id="c8c750a7-ea5c-4a19-83e7-23cefc68c089">
+            <dw:input-payload doc:sample="sample_data\list_json.json" mimeType="application/json"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/xml
+---
+payload]]></dw:set-payload>
+        </dw:transform-message>
+    </flow>
+    <flow name="day8-dwsFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/dw-00" doc:name="HTTP"/>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload resource="classpath:flight.dwl"/>
+        </dw:transform-message>
+    </flow>
+    <flow name="day8-dwsFlow14">
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+// Object
+{
+"flight" :	{
+  "destination": "SFO",
+  airline: "united"
+}
+}
+]]></dw:set-payload>
+        </dw:transform-message>
+    </flow>
+    <flow name="day8-dwsFlow15">
+        <dw:transform-message doc:name="Transform Message" metadata:id="19b458c4-cbdb-4740-868e-8883c6891a32">
+            <dw:input-payload doc:sample="bookid.json" mimeType="application/json"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%input payload application/json
+%output application/xml
+---
+{
+  bookstore: { (payload map {
+      book : {
+      title @(lang: "en"): $.item.properties.title,
+      year: $.item.properties.year,
+      price: $.item.price,
+      ($.item.properties.author map
+      author @(loc: "US"): $)
+    }
+  }) }
+}]]></dw:set-payload>
+        </dw:transform-message>
+    </flow>
+</mule>

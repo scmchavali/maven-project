@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='windows-1252'?>
+<company>
+	<department>
+		<technical>
+			<employees>
+				<employee>venkat</employee>
+				<employee>sethu</employee>
+				<employee>vijay</employee>
+				<employee>mahesh</employee>
+			</employees>
+		</technical>
+		<HR></HR>
+	</department>
+</company>

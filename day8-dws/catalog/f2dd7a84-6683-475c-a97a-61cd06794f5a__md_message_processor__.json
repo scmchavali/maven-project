@@ -1,0 +1,16 @@
+{
+    "inputMessageMetadata": {
+        "messagePayload": {
+            "connectorName": "Web_Service_Consumer",
+            "typeId": "listAllFlightsResponse"
+        }
+    },
+    "outputMessageMetadata": {
+        "messagePayload": {
+            "connectorName": "#_custom_mule_metadata_type_#",
+            "typeId": "cmodelidjson"
+        }
+    },
+    "id": "f2dd7a84-6683-475c-a97a-61cd06794f5a",
+    "version": "5.2.0.0"
+}
