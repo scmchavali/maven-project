@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
+    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
+    <validation:config name="Validation_Configuration" doc:name="Validation Configuration"/>
+    <db:mysql-config name="MySQL_Configuration" host="iltdb.mulesoft-training.com" port="3306" user="mule" password="mule" database="training" doc:name="MySQL Configuration"/>
+    <flow name="day3-filtersFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/filters" doc:name="HTTP"/>
+        <logger message="Learning filters" level="INFO" doc:name="Logger"/>
+        <set-payload value="#[message.inboundProperties.'http.query.params'.ordid]" doc:name="Set Payload"/>
+        <validation:is-not-empty config-ref="Validation_Configuration" value="#[payload]" doc:name="Validation"/>
+        <payload-type-filter expectedType="java.lang.String" doc:name="Payload"/>
+        <expression-filter expression="#[payload == '123']" doc:name="Expression"/>
+        <logger message="The order ID is: #[payload]" level="INFO" doc:name="Logger"/>
+    </flow>
+    <flow name="day3-filtersFlow2">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/db" doc:name="HTTP"/>
+        <logger message="Connecting to database" level="INFO" doc:name="Logger"/>
+        <db:select config-ref="MySQL_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[select * from accounts where accountID=7084]]></db:parameterized-query>
+        </db:select>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+    </flow>
+    <flow name="day3-filtersFlow1">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/splitme" doc:name="HTTP"/>
+        <set-payload value="#[message.inboundProperties.'http.query.params'.name]" doc:name="Set Payload"/>
+        <splitter expression="#[payload.split(&quot;&quot;)]" doc:name="Splitter"/>
+        <collection-aggregator failOnTimeout="true" doc:name="Collection Aggregator"/>
+        <set-payload value="#[payload.toString().toUpperCase()]" doc:name="Set Payload"/>
+    </flow>
+</mule>
