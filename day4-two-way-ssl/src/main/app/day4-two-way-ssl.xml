@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+    <http:listener-config name="HTTP_Listener_Configuration" protocol="HTTPS" host="0.0.0.0" port="8082" doc:name="HTTP Listener Configuration">
+        <tls:context>
+            <tls:trust-store path="clientStore.jks" password="password" type="jks"/>
+            <tls:key-store type="jks" path="serverStore.jks" alias="selfsigned" keyPassword="password" password="password"/>
+        </tls:context>
+    </http:listener-config>
+    <http:listener-config name="HTTP_Listener_Configuration1" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
+    <http:request-config name="HTTP_Request_Configuration" protocol="HTTPS" host="localhost" port="8082" doc:name="HTTP Request Configuration">
+        <tls:context>
+            <tls:trust-store path="serverStore.jks" password="password" type="jks"/>
+            <tls:key-store type="jks" path="clientStore.jks" alias="selfsigned" keyPassword="password" password="password"/>
+        </tls:context>
+    </http:request-config>
+    <flow name="day4-two-way-sslFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/server-ssl" doc:name="HTTP"/>
+        <set-payload value="I am secured" doc:name="Set Payload"/>
+        <logger message="I am secured" level="INFO" doc:name="Logger"/>
+    </flow>
+    <flow name="day4-two-way-sslFlow1">
+        <http:listener config-ref="HTTP_Listener_Configuration1" path="/client-ssl" doc:name="HTTP"/>
+        <http:request config-ref="HTTP_Request_Configuration" path="/server-ssl" method="GET" doc:name="HTTP"/>
+        <logger message="Reached secured server" level="INFO" doc:name="Logger"/>
+    </flow>
+</mule>
