@@ -1,0 +1,10 @@
+{
+	"products": {
+		"product": {
+			"model": "mbm5",
+			"name": "mobile",
+			"price": 6000,
+			"stock": 20
+		}
+	}
+}

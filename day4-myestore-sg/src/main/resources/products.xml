@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<products>
+    <product>
+        <model>mbm1</model>
+        <name>mobile</name>
+        <price>6000.0</price>
+        <stock>20</stock>
+    </product>
+    <product>
+        <model>mbm2</model>
+        <name>mobile</name>
+        <price>8000.0</price>
+        <stock>10</stock>
+    </product>
+    <product>
+        <model>mbm4</model>
+        <name>mobile</name>
+        <price>12000.0</price>
+        <stock>10</stock>
+    </product>
+    <product>
+        <model>mbm3</model>
+        <name>mobile</name>
+        <price>9000.0</price>
+        <stock>10</stock>
+    </product>
+    <product>
+        <model>mbm5</model>
+        <name>mobile</name>
+        <price>16000.0</price>
+        <stock>10</stock>
+    </product>
+</products>

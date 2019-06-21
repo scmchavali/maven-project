@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:mulexml="http://www.mulesoft.org/schema/mule/xml"
+	xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:ws="http://www.mulesoft.org/schema/mule/ws" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/current/mule-xml.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/ws http://www.mulesoft.org/schema/mule/ws/current/mule-ws.xsd">
+    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8084" doc:name="HTTP Listener Configuration"/>
+    <mulexml:namespace-manager includeConfigNamespaces="true">
+  <mulexml:namespace prefix="stor" uri="http://store2.products.com/"/>
+ </mulexml:namespace-manager>
+    <http:request-config name="HTTP_Request_Configuration" host="localhost" port="8083" doc:name="HTTP Request Configuration"/>
+    <ws:consumer-config name="Web_Service_Consumer" service="ProductStoreService" port="ProductStorePort" serviceAddress="http://localhost:8080/eproducts-store2/services/ProductStorePort" wsdlLocation="http://localhost:8080/eproducts-store2/services/ProductStorePort?wsdl" doc:name="Web Service Consumer"/>
+        
+    <flow name="day4-myestore-sgFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/final-resp" doc:name="HTTP"/>
+        <logger message="Learning Multicasting" level="INFO" doc:name="Logger"/>
+        <byte-array-to-object-transformer doc:name="Byte Array to Object"/>
+        <scatter-gather doc:name="Scatter-Gather">
+            <processor-chain>
+                <logger message="Starting Restful service in Route0" level="INFO" doc:name="Logger"/>
+                <expression-component doc:name="Expression"><![CDATA[flowVars.pname=xpath3('/stor:getAllProducts/arg0');
+System.out.println(flowVars.pname);]]></expression-component>
+                <http:request config-ref="HTTP_Request_Configuration" path="/Products/list" method="GET" doc:name="HTTP">
+                    <http:request-builder>
+                        <http:query-param paramName="name" value="#[flowVars.pname]"/>
+                    </http:request-builder>
+                </http:request>
+                <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+                <dw:transform-message doc:name="Transform Message" metadata:id="04401bc5-fcba-43d1-899d-8057203031e0">
+                    <dw:input-payload mimeType="application/xml"/>
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	products: payload.products.*product
+}]]></dw:set-payload>
+                </dw:transform-message>
+                <json:json-to-object-transformer doc:name="JSON to Object"/>
+                <object-to-string-transformer doc:name="Object to String"/>
+                <logger message="Resp from REST: #[payload]" level="TRACE" doc:name="Logger"/>
+            </processor-chain>
+            <processor-chain>
+                <logger message="Starting SOAP service in Route1" level="INFO" doc:name="Logger"/>
+                <ws:consumer config-ref="Web_Service_Consumer" operation="getAllProducts" doc:name="Web Service Consumer"/>
+                <dw:transform-message doc:name="Transform Message">
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+%namespace ns2 http://store2.products.com/
+---
+{
+	Products: payload.ns2#getAllProductsResponse.*return map {
+		product: {
+			model: $.model,
+			name: $.name,
+			price: $.price,
+			stock: $.stock
+		}
+	}
+}]]></dw:set-payload>
+                </dw:transform-message>
+                <json:json-to-object-transformer doc:name="JSON to Object"/>
+                <object-to-string-transformer doc:name="Object to String"/>
+                <logger message="Response from SOAP WS in Route no1" level="INFO" doc:name="Logger"/>
+            </processor-chain>
+        </scatter-gather>
+        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
+        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+    </flow>
+</mule>
