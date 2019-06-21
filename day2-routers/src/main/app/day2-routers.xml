@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
+    <flow name="day2-routersFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/calculator" doc:name="HTTP"/>
+        <set-variable variableName="v1" value="#[message.inboundProperties.'http.query.params'.v1]" doc:name="Variable"/>
+        <set-variable variableName="v2" value="#[message.inboundProperties.'http.query.params'.v2]" doc:name="Variable"/>
+        <choice doc:name="Choice">
+            <when expression="#[message.inboundProperties.'http.query.params'.opr=='d']">
+                <set-payload value="#[flowVars.v2 &gt;0 ? flowVars.v1/flowVars.v2 : &quot;Division by Zero is not allowed&quot;]" doc:name="Division"/>
+            </when>
+            <when expression="#[message.inboundProperties.'http.query.params'.opr=='a']">
+                <set-payload value="#[Integer.parseInt(flowVars.v1) + Integer.parseInt(flowVars.v2)]" doc:name="ADD"/>
+            </when>
+            <otherwise>
+                <set-payload value="Invalid Operation" doc:name="Invalid"/>
+            </otherwise>
+        </choice>
+        <set-payload value="Result is : #[payload]" doc:name="Set Payload"/>
+    </flow>
+</mule>
