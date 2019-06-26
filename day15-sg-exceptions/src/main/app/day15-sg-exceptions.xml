@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
+
+       
+    <flow name="post:/users:application/json:scatterGather-config">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/sg-exceptions" doc:name="HTTP"/>
+      <logger message="Flow Started" level="INFO" doc:name="Logger"/>
+        <set-payload value="Hello! Thread " doc:name="Set Payload"/>
+      <scatter-gather doc:name="Scatter-Gather" timeout="1500">
+            <custom-aggregation-strategy class="MyAggregationStrategy"/>
+        <threading-profile maxThreadsActive="3" poolExhaustedAction="WAIT"/>
+        <processor-chain>
+          <logger level="INFO" message="Route 1 started" doc:name="Logger"/>
+           <scripting:component doc:name="Groovy">
+            <scripting:script engine="Groovy"><![CDATA[sleep(1000);
+    return message.payload;]]></scripting:script>
+          </scripting:component>
+                <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+          <logger level="INFO" message="Route 1 completed" doc:name="Logger"/>
+        </processor-chain>
+        <processor-chain>
+          <logger level="INFO" message="Route 2 started" doc:name="Logger"/>
+          <scripting:component doc:name="Groovy">
+            <scripting:script engine="Groovy"><![CDATA[sleep(2000);
+    return message.payload;]]></scripting:script>
+          </scripting:component>
+                <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+                <logger message="Route 2 completed" level="INFO" doc:name="Logger"/>
+        </processor-chain>
+        <processor-chain>
+          <logger message="Route 3 started" level="INFO" doc:name="Logger"/>
+          <scripting:component doc:name="Groovy">
+            <scripting:script engine="Groovy"><![CDATA[sleep(1000);
+    return message.payload;]]></scripting:script>
+          </scripting:component>
+                <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+                <logger message="Route 3 completed" level="INFO" doc:name="Logger"/>
+        </processor-chain>
+      </scatter-gather>
+        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
+      <set-payload value="#[message.payload]" mimeType="text/plain" doc:name="Set Payload"/>
+    </flow>
+
+
+</mule>

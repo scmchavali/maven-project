@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.9.1"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+
+    <choice-exception-strategy name="Choice_Exception_Strategy">
+      <catch-exception-strategy when="#[exception.causeMatches('*ValidationException*')]" doc:name="Validation Exception Strategy">
+        <set-variable variableName="exceptionMessage" value="#[groovy:message.getExceptionPayload().getRootException().getMessage()]" doc:name="Set exceptionMessage"/>
+        <set-property propertyName="http.status" value="500" doc:name="Property"/>
+        <dw:transform-message doc:name="Transform Message">
+          <dw:set-payload><![CDATA[%dw 1.0
+      %output application/json
+      ---
+      {
+      errorMessage: flowVars.exceptionMessage
+      }]]></dw:set-payload>
+        </dw:transform-message>
+      </catch-exception-strategy>
+      <catch-exception-strategy doc:name="CompositeRoutingException" when="#[exception.causeMatches('*CompositeRoutingException*')]">
+        <set-payload value="#[exception]" doc:name="Set Payload"/>
+        <dw:transform-message doc:name="Transform Message">
+          <dw:set-payload><![CDATA[%dw 1.0
+      %output application/json
+      ---
+      {
+      errors: payload.exceptions map ((error, position) ->
+      position ++ ":" ++ error.causeException.message
+      )
+      }]]></dw:set-payload>
+        </dw:transform-message>
+      </catch-exception-strategy>
+      <catch-exception-strategy doc:name="Catch All Exception">
+        <set-payload value="#[groovy:message.getExceptionPayload().getRootException().getMessage()]" doc:name="Set Payload"/>
+      </catch-exception-strategy>
+    </choice-exception-strategy>
+
+</mule>
