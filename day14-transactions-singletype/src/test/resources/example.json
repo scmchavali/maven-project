@@ -1,0 +1,26 @@
+Correctrecord:
+
+{
+ "customer": {
+ "name": "Mule ESB",
+ "address": "Hyderabad"
+ },
+ "order": {
+ "item": "Apple iPhone 6S",
+ "shippingAddress": "Hyderabad"
+ }
+}
+
+
+Wrong record:
+
+{
+ "customer": {
+ "name": "Tomcat T",
+ "address": "Visakhapatnam"
+ },
+ "order": {
+ "item": "Apple iPhone 6S"
+ }
+}
+
