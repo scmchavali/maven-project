@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
+    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
+    <flow name="day10-eorderFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/eorder" doc:name="HTTP"/>
+        <byte-array-to-object-transformer doc:name="Byte Array to Object"/>
+        <flow-ref name="ValidateOrder" doc:name="ValidateOrder"/>
+        <logger message="#[payload.order.model]" level="INFO" doc:name="Logger"/>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+        <expression-component doc:name="Expression"><![CDATA[import org.json.JSONObject;
+
+JSONObject resp = new JSONObject(payload);
+payload=resp;]]></expression-component>
+        <component class="com.estore.product.Eorder" doc:name="Java"/>
+        <set-payload value="#[payload]" doc:name="Set Payload"/>
+        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+    </flow>
+    <sub-flow name="ValidateOrder">
+        <validation:is-not-empty value="#[payload]" doc:name="Validation"/>
+        <json:json-to-object-transformer returnClass="java.util.HashMap" doc:name="JSON to Object"/>
+        <expression-filter expression="#[message.payload.order.model.matches(&quot;^[a-z][a-z][a-z][1-9]&quot;)]" doc:name="Expression"/>
+    </sub-flow>
+</mule>

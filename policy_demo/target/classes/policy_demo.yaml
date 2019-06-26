@@ -1,0 +1,42 @@
+#
+# This is an example of a Custom Policy Definition file.
+# This file is used by API Platform to:
+# - Auto-generate a configuration UI for your custom policy.
+# - Determine policy dependencies
+#
+# See: https://docs.mulesoft.com/api-manager/applying-custom-policies#policy-definition 
+
+# Name used to describe the policy in API Platform
+name: Custom Policy Example
+
+# A more detailed description of the policy
+description: Specifies an MEL *query* expression which when evaluated against incoming messages and returning true, rejects the incoming message.
+
+# Category is just a plain text used in API Platform to list policies
+category: Security
+
+# True if the policy can work on its own or false if the policy can be 
+# applied only as part of another policy.
+standalone: true
+
+# A list of strings that describes characteristics provided by this policy.
+# API Platform uses an indirect dependency mechanisms: policies can provide
+# or require characteristics, the platform will inform you about requirements
+# but it will not force you to use a particular policy
+providedCharacteristics: [Message protection]
+requiredCharacteristics: []
+
+# This defines custom configuration parameters for your policy template
+configuration:  
+  - propertyName: query
+    name: MEL query
+    description: MEL query expression to filter incoming requests
+    type: expression
+    optional: false
+    defaultValue: "#[message.inboundProperties['http.method'] == 'POST']"
+  - propertyName: denied-message
+    name: Rejection message
+    description: A message to display when an incoming message is filtered
+    type: string
+    defaultValue: Access denied
+    optional: false  
