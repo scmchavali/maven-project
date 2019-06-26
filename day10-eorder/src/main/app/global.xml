@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:cluster="http://www.mulesoft.org/schema/mule/ee/cluster" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+    <configuration defaultExceptionStrategy-ref="day10-eorderChoice_Exception_Strategy" doc:name="Configuration">
+        <http:config useTransportForUris="false"/>
+    </configuration>
+
+<choice-exception-strategy name="day10-eorderChoice_Exception_Strategy">
+        <catch-exception-strategy doc:name="Catch Exception Strategy" when="#[exception.causeMatches('org.mule.extension.validation.api.*')]">
+            <set-payload value="Payload is empty, please fillup proper data to fulfil your order,  " doc:name="Set Payload"/>
+            <set-property propertyName="http.status" value="400" doc:name="Property"/>
+            <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+        </catch-exception-strategy>
+        <catch-exception-strategy doc:name="Catch Exception Strategy">
+            <set-payload value="The order is: #[payload] is not in proper form please send proper data" doc:name="Set Payload"/>
+            <set-property propertyName="http.status" value="500" doc:name="Property"/>
+            <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+        </catch-exception-strategy>
+    </choice-exception-strategy>
+    
+
+</mule>

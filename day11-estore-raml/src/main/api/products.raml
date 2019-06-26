@@ -1,0 +1,33 @@
+#%RAML 0.8
+baseUri: https://mocksvc.mulesoft.com/mocks/a7756dc0-dbe2-4e45-9377-db34970eb7c5
+title: eproductapi
+version: 1.0
+
+/list:
+  get:
+    queryParameters: 
+      name:
+    responses: 
+      200:
+        body: 
+          application/json:
+            example:   |
+              {
+                "product": {
+                  "name":"mobile",
+                  "model":"mbm5",
+                  "price":20000,
+                  "stock": 10
+                }
+              }
+              
+/price:
+  get:
+    queryParameters: 
+      id:
+    responses: 
+      200:
+        body: 
+          text/plain:
+            example:  |
+              20000
